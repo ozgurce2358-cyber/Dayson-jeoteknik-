@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DAYSON JEOTEKNİK</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f5f7;color:#18222c}
+header{background:#17365d;color:#fff;padding:16px}.wrap{max-width:1050px;margin:auto;padding:12px}
+h1{margin:0 0 4px;font-size:22px}.sub{opacity:.9;font-size:13px}
+button{border:0;border-radius:9px;padding:10px 13px;background:#17365d;color:#fff;font-weight:600;cursor:pointer}
+button.gray{background:#68737e}button.red{background:#a93226}button.green{background:#287a45}
+input,select,textarea{width:100%;padding:11px;border:1px solid #ccd4dc;border-radius:8px;font-size:15px;background:white}
+textarea{min-height:70px}.search{margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:11px}
+.card,.panel{background:#fff;border-radius:12px;padding:14px;box-shadow:0 2px 8px #00000010}
+.card{cursor:pointer}.card h3{margin:6px 0 8px}.muted{color:#68737e;font-size:12px}
+.stats{display:flex;gap:8px;flex-wrap:wrap}.pill{background:#eaf1f7;padding:6px 9px;border-radius:20px;font-size:12px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px}
+table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #e5e8eb;text-align:left;font-size:14px;vertical-align:top}th{background:#edf3f8}
+.hidden{display:none}.notice{background:#fff6d8;padding:10px;border-radius:9px;margin:10px 0;font-size:13px}.home-machine-list{display:none}.category-menu{margin:12px 0}.category-main{width:100%;font-size:16px;text-align:left}.category-main span{float:right}.category-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;background:#fff;padding:10px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px #00000012}.category-list button{background:#edf3f8;color:#18222c;text-align:left}.category-submenu{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:8px 0 14px;padding:10px;background:#fff;border-radius:12px;box-shadow:0 2px 8px #00000012}.category-submenu button{background:#f0f4f7;color:#18222c;text-align:left}.category-submenu .subhead{grid-column:1/-1;font-weight:700}
+
+.personnel-horizontal{width:100%;min-width:850px;border-collapse:collapse}
+.personnel-horizontal th,.personnel-horizontal td{padding:10px 8px;border-bottom:1px solid #ddd;text-align:left;vertical-align:middle}
+.tablewrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.personnel-horizontal tr:hover{background:#f6f8fa}.personnel-horizontal td:last-child{white-space:nowrap}.personnel-horizontal td:last-child button{margin:2px}
+.machine-personnel-table{width:100%;min-width:650px;border-collapse:collapse}
+.machine-personnel-table th,.machine-personnel-table td{padding:9px 7px;border-bottom:1px solid #ddd;text-align:left}
+.vehicle-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.vehicle-summary .card{padding:12px}
+.expired-date{color:#b42318!important;font-weight:700;background:#fff1f0!important}.today-date{color:#b54708!important;font-weight:700;background:#fff7e6!important}
+.global-search-results{position:relative;z-index:50;margin-top:4px;background:#fff;border:1px solid #d8dee5;border-radius:10px;box-shadow:0 5px 18px #0002;max-height:420px;overflow:auto}
+.search-hit{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #edf0f3;border-radius:0;background:#fff;color:#18222c;padding:10px 12px;cursor:pointer}
+.search-hit:hover{background:#f2f6f9}.search-hit span{display:inline-block;font-size:11px;color:#667085;background:#eef2f6;border-radius:5px;padding:3px 6px;margin-right:8px}.search-empty{padding:12px;color:#667085}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>DAYSON JEOTEKNİK</h1><div class="sub">Makine • Envanter • Stok • Bakım • Arıza • İş • Tedarik</div></div></header>
+<div class="wrap">
+<div id="home">
+<input id="search" class="search" placeholder="Makine, malzeme, personel veya araç ara..." oninput="globalSearch()" autocomplete="off"><div id="globalSearchResults" class="global-search-results hidden"></div>
+<div class="category-menu"><button class="category-main" onclick="toggleMainCategories()">☰ Kategoriler <span id="categoryArrow">▼</span></button><div id="mainCategories" class="category-list hidden" aria-hidden="true"><button onclick="categoryMachines()">🔧 Makineler</button><button onclick="categoryDieselFuel()">⛽ Dizel Makineler ve Araçlar</button><button onclick="categoryPersonnel()">👥 Personel</button><button onclick="categoryStock()">📦 Stok / Depo</button><button onclick="categoryLodging()">🏠 Konaklama</button><button onclick="categoryVehicles()">🚚 Araçlar</button><button onclick="categoryPurchases()">🧾 Alımlar</button><button onclick="exportData()">💾 Yedek Al</button></div></div><div id="categorySubmenu" class="category-submenu hidden"></div>
+<div id="grid" class="grid home-machine-list"></div>
+</div>
+<div id="machine" class="hidden"></div><div id="companyVehicles" class="hidden"></div><div id="purchases" class="hidden"></div><div id="depot" class="hidden"></div><div id="personnelDirectory" class="hidden"></div><div id="lodging" class="hidden"></div><div id="externalLodging" class="hidden"></div>
+</div>
+<script>
+const CFG={"machines": [["M001", "Paletli TSM 4 Silindir", "Paletli"], ["M002", "Paletli TSM 6 Silindir", "Paletli"], ["M003", "Kamyon Üstü TSM", "Kamyon Üstü"], ["M004", "Tysim KR 150 Yeşil", "Paletli"], ["M005", "Tysim KR 150 Sarı", "Paletli"], ["M006", "Tysim 240 Sarı", "Paletli"], ["M007", "Konteyner Santral Otomatik Enjeksiyon Pompası", "Konteyner"], ["M008", "Tekerlekli Santral Yarı Otomatik Enjeksiyon Pompası", "Tekerlekli"], ["M009", "Tekerlekli Elektrikli Enjeksiyon Pompası", "Tekerlekli"], ["M010", "Tekerlekli Dizel Enjeksiyon Pompası", "Tekerlekli"], ["M011", "110 kW'lık Taşımalı Genpower Jeneratör", "Jeneratör"]], "initial": {"M001": [["HQ", 9, "adet"], ["B Tij", 7, "adet"], ["NQ", 0, "adet"], ["HQ Adaptör", 1, "adet"], ["Manevra Başlığı", 1, "adet"], ["Darbe Başlığı", 1, "adet"], ["SPT Tüpü Başlığı", 4, "adet"], ["SPT Tüp", 1, "adet"], ["HQ Çene", 3, "adet"], ["B Tij Çene", 4, "adet"], ["B Tij Top Matkap", 3, "adet"], ["Manevra Başlığı HQ", 1, "adet"], ["Manevra Başlığı B.Tij", 1, "adet"], ["Su Başlığı", 1, "adet"], ["Tank 1 tonluk", 1, "adet"], ["Emici", 2, "adet"], ["Su Termosu", 1, "adet"], ["Sehpa", 2, "adet"]], "M002": [["HQ", 9, "adet"], ["NQ", 0, "adet"], ["B. Tij", 7, "adet"], ["54 mm Manevra Başlığı", 1, "adet"], ["54 mm Su Başlığı", 1, "adet"], ["HQ Adaptör", 2, "adet"], ["Darbe Başlığı", 1, "adet"], ["HQ Adaptörlü Kelebek Matkap", 1, "adet"], ["Gres Pompası", 1, "adet"], ["Emici Hortum", 1, "adet"], ["Su Hortumu", 30, "metre"], ["Vidye HQ", 1, "adet"], ["Top Matkap", 1, "adet"]], "M003": [["HQ", 8, "adet"], ["BTJ", 7, "adet"], ["NQ", 0, "adet"], ["HQ Adaptör", 2, "adet"], ["Su Başlığı", 1, "adet"], ["SPT Tüpü", 1, "adet"], ["Manevra Başlığı", 1, "adet"], ["Midye HQ", 2, "adet"], ["Top Matkap", 1, "adet"]]}, "tools": {"M001": ["24-36 Boru Anahtarı", "Çekiç", "Huni", "24 Yıldız Anahtar", "32 Yıldız Anahtar", "30 Yıldız Anahtar", "Gres Pompası", "25-28 Çatal Anahtar", "24-26 Çatal Anahtar", "22-20 Çatal Anahtar", "14 Y Çatal Anahtar", "10-11 Çatal Anahtar", "6-8 Alyan", "Terazi", "Metre", "Tabela", "Takım Sandığı", "Spatula", "Şemsiye", "İngiliz Anahtarı"], "M002": ["İngiliz Anahtarı", "Kerpeten", "28-25 Anahtar", "24-26 Anahtar", "32-27 Anahtar", "22-20 Anahtar", "23-21 Anahtar", "19-18 Anahtar", "22 Yıldız Anahtar", "18-19 Yıldız Anahtar", "14-15 Anahtar", "Alyan 6", "Alyan 8", "Alyan 10", "Alyan 12", "Çekiç", "Termos"], "M003": ["Kerpeten", "27 Yıldız Çatal Anahtarı", "19 Yıldız Çatal Anahtarı", "22 Yıldız Çatal Anahtar", "17 Yıldız Çatal Anahtar", "13 Yıldız Çatal Anahtar", "14 Yıldız Çatal Anahtar", "30-32 Çatal Anahtar", "20-22 Çatal Anahtar", "16-17 Çatal Anahtar", "25-25 Çatal Anahtar", "24-26 Çatal Anahtar", "18-19 Çatal Anahtar", "10-11 Çatal Anahtar", "Çekiç", "Düz Tornavida", "Takım Sandığı", "Su Termosu", "Gres Pompası", "Emici Hortum", "Tank 3'lü"]}};
+const KEY="dyson_jeoteknik_v1";
+let state=loadState(), current=null, section="inventory";
+
+function ensureRegistrationVehicles(){
+  state.companyVehicles ||= [];
+  const regs=[
+    {name:"Fiat Ducato",model:"2025",plate:"16 BTS 746",insurance:"24.07.2027",inspection:"11.06.2027",note:"Ruhsattan işlendi"},
+    {name:"Mitsubishi K14TJUNSL",model:"1999",plate:"16 CCN 854",insurance:"09.07.2027",inspection:"21.07.2027",note:"Ruhsattan işlendi"},
+    {name:"Özesan Lowbed",model:"2020",plate:"16 BNE 392",insurance:"—",inspection:"22.04.2027",note:"Sigorta bilgisi yok"},
+    {name:"Mitsubishi L300 DLX",model:"2005",plate:"16 EEN 51",insurance:"18.11.2026",inspection:"24.12.2025",note:""},
+    {name:"Fiat Doblo",model:"2006",plate:"16 BIG 220",insurance:"02.06.2027",inspection:"20.11.2026",note:""},
+    {name:"Fiat Fiorino",model:"2017",plate:"16 TCG 59",insurance:"26.11.2026",inspection:"11.06.2027",note:""},
+    {name:"Volvo FH Çekici",model:"2012",plate:"34 FS 180",insurance:"09.03.2027",inspection:"11.06.2027",note:""},
+    {name:"Dodge Kamyonet",model:"—",plate:"16 BRZ 904",insurance:"19.05.2027",inspection:"09.01.2026",note:"Ruhsat bekleniyor"},
+    {name:"Audi",model:"—",plate:"16 EDG 66",insurance:"30.05.2027",inspection:"24.05.2027",note:"Ruhsat bekleniyor"}
+  ];
+  for(const r of regs){
+    let x=state.companyVehicles.find(v=>v.vals && (v.vals[2]||"").replace(/\s/g,"")===r.plate.replace(/\s/g,""));
+    if(!x){ x={vals:Array(11).fill("")}; state.companyVehicles.push(x); }
+    x.vals[0]=r.name; x.vals[1]=r.model; x.vals[2]=r.plate;
+    x.vals[8]="Aktif"; x.vals[9]=r.insurance+" / "+r.inspection; x.vals[10]=r.note;
+  }
+  save();
+}
+ensureRegistrationVehicles();
+
+function ensureCurrentPersonnel(){
+ state.personnelDirectory ||= [];
+ const people = [
+    ["Fırat Yelkence", "Malzeme Tedarikçisi", "Ducato Pikap", "Aktif", "Yok"],
+    ["Kadir Koç", "Operatör", "TSM 4 Silindir", "Aktif", "Yok"],
+    ["Yılmaz Karaca", "Yardımcı", "TSM 4 Silindir", "Aktif", "Yok"],
+    ["Yakup Yasin Öztürk", "Yardımcı / Depo Sorumlusu", "TSM 4 Silindir", "Aktif", "Yok"],
+    ["Salih Çiçek", "Makine Yağcısı", "Tysim KR 150 Sarı", "Aktif", "Yok"],
+    ["Nevzat Ferik", "Makine Yağcısı", "Tysim KR 150 Sarı", "Aktif", "Oda 1"],
+    ["Mehmet Kaya", "Makine Yağcısı", "Tysim KR 150 Sarı", "Aktif", "Yok"],
+    ["Furkan Nure", "Operatör", "Tysim KR 150 Yeşil", "Aktif", "Şantiye Dışı"],
+    ["Fadıl Tüzün", "Makine Yağcısı", "Tysim KR 150 Yeşil", "Aktif", "Şantiye Dışı"],
+    ["Doğan İşcan", "Operatör", "Konteyner Tam Otomatik Santral", "Aktif", "Şantiye Dışı"],
+    ["Kemal Korkut", "Santral Operatörü", "Tekerlekli Yarı Otomatik Santral", "Aktif", "Kendi evi / Azat Mahallesi"],
+    ["Ümit Kabakçı", "Operatör", "Kamyon Üstü TSM", "Aktif", "Oda 4"],
+    ["Murat Çolakoğlu", "Yardımcı", "Kamyon Üstü TSM", "Aktif", "Oda 4"],
+    ["Süleyman Sarmaşık Çelebi", "Operatör", "TSM 6 Silindir", "Aktif", "Oda 5"],
+    ["Vedat Demir", "Yardımcı", "TSM 6 Silindir", "Aktif", "Yok"],
+    ["Bilal Bayındır", "Yardımcı", "TSM 6 Silindir", "Aktif", "Yok"],
+    ["Murat Yatmaz", "Kaynakçı", "Saha", "Aktif", "Oda 6"]
+]
+ for(const p of people){
+   if(!state.personnelDirectory.some(x=>x.vals && x.vals[0]===p[0])){
+     const group = ["Mühendis","Muhasebe","Proje"].includes(p[1]) ? p[1] : "Saha Çalışanları";
+     state.personnelDirectory.push({vals:[p[0],group,p[1],p[3],p[2],p[4],""]});
+   }
+ }
+ save();
+  const corrections = [
+    ["Salih Çiçek","Operatör","Tysim KR 150 Sarı"],
+    ["Nevzat Ferik","Yağcı","Tysim KR 150 Sarı"],
+    ["Mehmet Kaya","Makine Yağcısı","Tysim KR 150 Sarı"],
+    ["Furkan Nure","Operatör","Tysim KR 150 Yeşil"],
+    ["Fadıl Tüzün","Makine Yağcısı","Tysim KR 150 Yeşil"],
+    ["Doğan İşcan","Operatör","Konteyner Tam Otomatik Santral"]
+  ];
+  for(const c of corrections){
+    const p=state.personnelDirectory.find(x=>x.vals && x.vals[0]===c[0]);
+    if(p){ p.vals[2]=c[1]; p.vals[4]=c[2]; }
+    else state.personnelDirectory.push({vals:[c[0],"Saha Çalışanları",c[1],"Aktif",c[2],"Yok",""]});
+  }
+
+}
+ensureCurrentPersonnel();
+state.personnelDirectory=(state.personnelDirectory||[]).filter(x=>{
+  return x && Array.isArray(x.vals) && String(x.vals[0]||"").trim().length>1;
+});
+save();
+
+
+
+function loadState(){
+ let raw=null;
+ try{raw=localStorage.getItem(KEY);}catch(e){raw=null;}
+ if(!raw && window.__DYSON_MEMORY_STATE) return window.__DYSON_MEMORY_STATE;
+ if(raw){
+   try{
+     const s=JSON.parse(raw);
+     s.stock ||= {}; s.tools ||= {}; s.logs ||= []; s.maint ||= []; s.fails ||= [];
+     s.works ||= []; s.supplies ||= []; s.daily ||= []; s.personnel ||= [];
+     s.depot ||= []; s.rooms ||= []; s.lodgingAssets ||= []; s.externalLodging ||= []; s.personnelDirectory ||= []; s.companyVehicles ||= []; s.purchases ||= []; s.vehicleDriverHistory ||= []; s.vehicleAssignments ||= []; s.personnelDirectory ||= []; s.vehicleDriverHistory ||= []; s.personnelDirectory ||= [];
+     for(const [id,rows] of Object.entries(CFG.initial)){
+       if(!Array.isArray(s.stock[id]) || s.stock[id].length===0){
+         s.stock[id]=rows.map((x,i)=>({id:"i"+i,name:x[0],qty:x[1],unit:x[2],note:""}));
+       }
+     }
+     for(const [id,arr] of Object.entries(CFG.tools)){
+       if(!Array.isArray(s.tools[id]) || s.tools[id].length===0)
+         s.tools[id]=arr.map((x,i)=>({id:"t"+i,name:x,qty:"",note:""}));
+     }
+     for(const [id] of CFG.machines){s.stock[id] ||= [];s.tools[id] ||= [];}
+     if(!s.personnelDirectory.some(x=>x.vals && x.vals[0]==="Murat Yatmaz")){
+       s.personnelDirectory.push({vals:["Murat Yatmaz","Saha Çalışanları","Kaynakçı","Aktif","","",""]});
+     }
+     const room6=s.rooms.find(x=>x.vals && x.vals[0]==="6");
+     if(room6 && !room6.vals[1]) room6.vals[1]="Murat Yatmaz";
+     if(s.rooms.length===0){
+       for(let i=1;i<=10;i++) s.rooms.push({vals:[String(i),"","", "2 kişilik oda"]});
+     }
+     if(s.lodgingAssets.length===0){
+       s.lodgingAssets.push({vals:["Buzdolabı","1","Ortak alan","Mevcut",""]});
+       s.lodgingAssets.push({vals:["Çamaşır Makinesi","1","Ortak alan","Mevcut",""]});
+     }
+     return s;
+   }catch(e){}
+ }
+ const s={stock:{},tools:{},logs:[],maint:[],fails:[],works:[],supplies:[],daily:[],personnel:[],depot:[],rooms:[],lodgingAssets:[],externalLodging:[],personnelDirectory:[]};
+ for(const [id,rows] of Object.entries(CFG.initial))
+   s.stock[id]=rows.map((x,i)=>({id:"i"+i,name:x[0],qty:x[1],unit:x[2],note:""}));
+ for(const [id,arr] of Object.entries(CFG.tools))
+   s.tools[id]=arr.map((x,i)=>({id:"t"+i,name:x,qty:"",note:""}));
+ for(const [id] of CFG.machines){s.stock[id] ||= [];s.tools[id] ||= [];}
+ for(let i=1;i<=10;i++) s.rooms.push({vals:[String(i),"","", "2 kişilik oda"]});
+ s.lodgingAssets.push({vals:["Buzdolabı","1","Ortak alan","Mevcut",""]});
+ s.lodgingAssets.push({vals:["Çamaşır Makinesi","1","Ortak alan","Mevcut",""]});
+ return s;
+}
+function save(){
+ try{localStorage.setItem(KEY,JSON.stringify(state));}
+ catch(e){window.__DYSON_MEMORY_STATE=state;}
+}
+function esc(x){return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function machine(id){return CFG.machines.find(x=>x[0]===id);}
+
+function ensureDSMDrillStock(){
+ state.depot ||= [];
+ if(!state.depot.some(x => x.name === "DSM Matkabı" && x.location === "Depo")){
+   state.depot.push({
+     id:"Depo-DSM-Matkabı",
+     location:"Depo",
+     name:"DSM Matkabı",
+     qty:1,
+     unit:"adet",
+     min:0,
+     spare:"Hayır",
+     note:"Tysim KR150 ekipmanı — fotoğraftaki matkap",
+     lastIn:new Date().toLocaleDateString("tr-TR")
+   });
+   save();
+ }
+}
+function depotView(){
+ ensureDSMDrillStock();
+
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("machine").classList.add("hidden");
+ const d=document.getElementById("depot"); d.classList.remove("hidden");
+ const rows=state.depot||[];
+ const renderLocation=(loc)=>{
+  const rr=rows.filter(x=>x.location===loc);
+  return `<div class="panel"><h3>${loc}</h3>
+  <div class="formgrid">
+   <input id="${loc}Name" placeholder="Malzeme adı">
+   <input id="${loc}Qty" type="number" step="any" placeholder="Miktar">
+   <input id="${loc}Unit" placeholder="Birim (adet, m, lt...)">
+   <input id="${loc}Min" type="number" step="any" placeholder="Minimum stok">
+   <input id="${loc}Spare" placeholder="Yedek mi? (Evet/Hayır)">
+   <input id="${loc}Note" placeholder="Not">
+  </div>
+  <div class="actions"><button class="green" onclick="addDepot('${loc}')">Stok Ekle</button></div>
+  <table><tr><th>Malzeme</th><th>Mevcut</th><th>Birim</th><th>Min. Stok</th><th>Yedek</th><th>Son Durum</th><th>İşlem</th></tr>
+  ${rr.map(x=>{
+    const critical=Number(x.qty)<=Number(x.min||0);
+    return `<tr><td>${esc(x.name)}</td><td><input style="width:85px" type="number" step="any" value="${x.qty}" onchange="setDepotQty('${x.id}',this.value)"></td><td>${esc(x.unit)}</td><td>${x.min||0}</td><td>${esc(x.spare||"")}</td><td>${critical?"⚠️ Kritik":"Normal"}</td><td><button onclick="editDepot('${x.id}')">Düzenle</button> <button class="red" onclick="delDepot('${x.id}')">Sil</button></td></tr>`;
+  }).join("")}</table></div>`;
+ };
+ d.innerHTML=`<div class="panel"><button class="gray" onclick="closeDepot()">← Ana Sayfa</button><h2>📦 Depo Stok</h2>
+ <div class="notice">Depo stokları makine stoklarından ayrı tutulur. Alt konteyner ve üst konteyner ayrı takip edilir.</div></div>
+ ${renderLocation("Alt Konteyner")}${renderLocation("Üst Konteyner")}${renderLocation("Depo")}`;
+}
+function addDepot(loc){
+ state.depot ||= [];
+ const id=loc==="Alt Konteyner"?"Alt":"Ust";
+ const val=n=>document.getElementById(id+n).value;
+ const name=val("Name").trim();
+ if(!name)return alert("Malzeme adını yaz.");
+ state.depot.push({id:loc+"-"+Date.now(),location:loc,name,qty:Number(val("Qty")||0),unit:val("Unit")||"adet",min:Number(val("Min")||0),spare:val("Spare"),note:val("Note"),lastIn:new Date().toLocaleDateString("tr-TR")});
+ save();depotView();
+}
+function setDepotQty(id,v){
+ const r=(state.depot||[]).find(x=>x.id===id);if(r){r.qty=Number(v||0);r.lastChange=new Date().toLocaleDateString("tr-TR");save();}
+}
+function editDepot(id){
+  const r=(state.depot||[]).find(x=>x.id===id); if(!r)return;
+  const name=prompt("Malzeme adı:",r.name??""); if(name===null)return;
+  const qty=prompt("Miktar:",r.qty??""); if(qty===null)return;
+  const unit=prompt("Birim:",r.unit??"adet"); if(unit===null)return;
+  const min=prompt("Minimum stok:",r.min??0); if(min===null)return;
+  const spare=prompt("Yedek mi? (Evet/Hayır):",r.spare??""); if(spare===null)return;
+  const note=prompt("Not:",r.note??""); if(note===null)return;
+  r.name=name.trim(); r.qty=Number(qty||0); r.unit=unit||"adet"; r.min=Number(min||0); r.spare=spare; r.note=note;
+  r.lastChange=new Date().toLocaleDateString("tr-TR"); save(); depotView();
+}
+function delDepot(id){
+ if(confirm("Bu depo stok kaydı silinsin mi?")){state.depot=state.depot.filter(x=>x.id!==id);save();depotView();}
+}
+function closeDepot(){document.getElementById("depot").classList.add("hidden");renderHome();}
+
+
+function lodgingView(){
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("machine").classList.add("hidden");
+ document.getElementById("depot").classList.add("hidden");
+ document.getElementById("externalLodging").classList.add("hidden");document.getElementById("lodging").classList.add("hidden");
+ const d=document.getElementById("lodging"); d.classList.remove("hidden");
+ const rooms=state.rooms||[];
+ const areas=state.lodgingAssets||[];
+ d.innerHTML=`<div class="panel"><button class="gray" onclick="closeLodging()">← Ana Sayfa</button>
+ <h2>🏠 Konaklama Bölümü</h2>
+ <div class="notice">10 oda • Her odada 2 kişi • 3 tuvalet • 3 banyo</div>
+ <div class="actions"><button onclick="lodgingSection='rooms';lodgingView()">Odalar</button><button onclick="lodgingSection='assets';lodgingView()">Demirbaş / Malzeme</button></div></div>`;
+ if((window.lodgingSection||"rooms")==="rooms") lodgingRooms(d,rooms);
+ else lodgingAssets(d,areas);
+}
+function lodgingRooms(d,rows){
+ d.innerHTML+=`<div class="panel"><h3>Odalar ve Kalan Personel</h3>
+ <div class="formgrid"><input id="r0" placeholder="Oda No (1-10)"><input id="r1" placeholder="1. kişi"><input id="r2" placeholder="2. kişi"><input id="r3" placeholder="Durum / Not"></div>
+ <div class="actions"><button class="green" onclick="addRoom()">Oda Kaydı Ekle / Güncelle</button></div>
+ <table><tr><th>Oda</th><th>1. Kişi</th><th>2. Kişi</th><th>Durum / Not</th><th>İşlem</th></tr>
+ ${rows.map((x,i)=>`<tr>${x.vals.map(v=>`<td>${esc(v)}</td>`).join("")}<td><button onclick="editRoom(${i})">Düzenle</button> <button class="red" onclick="delRoom(${i})">Sil</button></td></tr>`).join("")}</table></div>
+ <div class="panel"><h3>Ortak Alanlar</h3><p>🚽 Tuvalet: 3 adet &nbsp;&nbsp; 🚿 Banyo: 3 adet</p></div>`;
+}
+function addRoom(){
+ state.rooms ||= [];
+ const room=document.getElementById("r0").value.trim();
+ if(!room)return alert("Oda numarasını yaz.");
+ const existing=state.rooms.findIndex(x=>x.vals[0]===room);
+ const vals=[room,document.getElementById("r1").value,document.getElementById("r2").value,document.getElementById("r3").value];
+ if(existing>=0) state.rooms[existing]={vals}; else state.rooms.push({vals});
+ save();lodgingView();
+}
+function editRoom(i){
+  const r=state.rooms[i]; if(!r)return;
+  const vals=r.vals.slice();
+  for(let j=0;j<vals.length;j++){ const v=prompt(["Oda No","1. kişi","2. kişi","Durum / Not"][j]+":",vals[j]??""); if(v===null)return; vals[j]=v; }
+  state.rooms[i]={vals}; save(); lodgingView();
+}
+function delRoom(i){if(confirm("Oda kaydı silinsin mi?")){state.rooms.splice(i,1);save();lodgingView();}}
+function lodgingAssets(d,rows){
+ d.innerHTML+=`<div class="panel"><h3>Konaklama Demirbaş / Malzeme</h3>
+ <div class="formgrid"><input id="la0" placeholder="Malzeme / Demirbaş"><input id="la1" placeholder="Miktar"><input id="la2" placeholder="Konum (oda/ortak alan)"><input id="la3" placeholder="Durum"><input id="la4" placeholder="Not"></div>
+ <div class="actions"><button class="green" onclick="addLodgingAsset()">Demirbaş / Malzeme Ekle</button></div>
+ <table><tr><th>Malzeme / Demirbaş</th><th>Miktar</th><th>Konum</th><th>Durum</th><th>Not</th><th>İşlem</th></tr>
+ ${rows.map((x,i)=>`<tr>${x.vals.map(v=>`<td>${esc(v)}</td>`).join("")}<td><button onclick="editLodgingAsset(${i})">Düzenle</button> <button class="red" onclick="delLodgingAsset(${i})">Sil</button></td></tr>`).join("")}</table>
+ <div class="notice">Başlangıç demirbaşları: 1 buzdolabı, 1 çamaşır makinesi.</div></div>`;
+}
+function addLodgingAsset(){
+ state.lodgingAssets ||= [];
+ state.lodgingAssets.push({vals:[document.getElementById("la0").value,document.getElementById("la1").value,document.getElementById("la2").value,document.getElementById("la3").value,document.getElementById("la4").value]});
+ save();lodgingView();
+}
+function editLodgingAsset(i){
+  const r=state.lodgingAssets[i]; if(!r)return;
+  const vals=r.vals.slice(), labels=["Malzeme / Demirbaş","Miktar","Konum","Durum","Not"];
+  for(let j=0;j<vals.length;j++){ const v=prompt(labels[j]+":",vals[j]??""); if(v===null)return; vals[j]=v; }
+  state.lodgingAssets[i]={vals}; save(); lodgingView();
+}
+function delLodgingAsset(i){if(confirm("Kayıt silinsin mi?")){state.lodgingAssets.splice(i,1);save();lodgingView();}}
+function closeLodging(){document.getElementById("lodging").classList.add("hidden");renderHome();}
+
+function externalLodgingView(){
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("machine").classList.add("hidden");
+ document.getElementById("depot").classList.add("hidden");
+ document.getElementById("lodging").classList.add("hidden");
+ const d=document.getElementById("externalLodging"); d.classList.remove("hidden");
+ const rows=state.externalLodging||[];
+ d.innerHTML=`<div class="panel"><button class="gray" onclick="closeExternalLodging()">← Ana Sayfa</button><h2>🏠 Şantiye Dışı Konaklama</h2>
+ <div class="formgrid"><input id="ex0" type="date" value="${new Date().toISOString().slice(0,10)}"><input id="ex1" placeholder="Personel Adı"><input id="ex2" placeholder="Makine / Ekip"><input id="ex3" placeholder="Pansiyon / Konaklama Yeri"><input id="ex4" placeholder="Not"></div>
+ <div class="actions"><button class="green" onclick="addExternalLodging()">Dış Konaklama Kaydı Ekle</button></div>
+ <table><tr><th>Tarih</th><th>Personel</th><th>Makine / Ekip</th><th>Pansiyon</th><th>Not</th><th>İşlem</th></tr>
+ ${rows.map((x,i)=>`<tr>${x.vals.map(v=>`<td>${esc(v)}</td>`).join("")}<td><button onclick="editExternalLodging(${i})">Düzenle</button> <button class="red" onclick="delExternalLodging(${i})">Sil</button></td></tr>`).join("")}</table></div>`;
+}
+function addExternalLodging(){
+ state.externalLodging ||= [];
+ state.externalLodging.push({vals:[document.getElementById("ex0").value,document.getElementById("ex1").value,document.getElementById("ex2").value,document.getElementById("ex3").value,document.getElementById("ex4").value]});
+ save();externalLodgingView();
+}
+function editExternalLodging(i){
+  const r=state.externalLodging[i]; if(!r)return;
+  const vals=r.vals.slice(), labels=["Tarih","Personel","Makine / Ekip","Pansiyon","Not"];
+  for(let j=0;j<vals.length;j++){ const v=prompt(labels[j]+":",vals[j]??""); if(v===null)return; vals[j]=v; }
+  state.externalLodging[i]={vals}; save(); externalLodgingView();
+}
+function delExternalLodging(i){if(confirm("Bu kayıt silinsin mi?")){state.externalLodging.splice(i,1);save();externalLodgingView();}}
+function closeExternalLodging(){document.getElementById("externalLodging").classList.add("hidden");renderHome();}
+
+
+function personnelStatusSummary(rows){
+ const active=rows.filter(x=>x.vals&&x.vals[3]==="Aktif").length;
+ const izin=rows.filter(x=>x.vals&&x.vals[3]==="İzinli").length;
+ const rapor=rows.filter(x=>x.vals&&x.vals[3]==="Raporlu").length;
+ const pasif=rows.filter(x=>x.vals&&x.vals[3]==="Pasif").length;
+ return `<div class="notice"><b>Personel Durumu:</b> Aktif: ${active} &nbsp; | &nbsp; İzinli: ${izin} &nbsp; | &nbsp; Raporlu: ${rapor} &nbsp; | &nbsp; Pasif: ${pasif}</div>`;
+}
+function personnelDirectoryView(){
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("machine").classList.add("hidden");
+ document.getElementById("depot").classList.add("hidden");
+ document.getElementById("lodging").classList.add("hidden");
+ document.getElementById("externalLodging").classList.add("hidden");
+ document.getElementById("companyVehicles").classList.add("hidden");
+ document.getElementById("purchases").classList.add("hidden");
+ const d=document.getElementById("personnelDirectory"); d.classList.remove("hidden");
+ const rows=(state.personnelDirectory||[]).filter(x=>x && Array.isArray(x.vals) && String(x.vals[0]||"").trim().length>1);
+ d.innerHTML=`<div class="panel"><button class="gray" onclick="closePersonnelDirectory()">← Ana Sayfa</button>
+ <h2>👥 Güncel Çalışan Personel</h2>
+ ${personnelStatusSummary(rows)}
+ <div class="actions"><button class="green" onclick="togglePersonnelForm()">＋ Personel Ekle</button></div>
+ <div id="personnelForm" class="hidden"></div>
+ <div class="notice">Kayıtların tamamında <b>Düzenle</b> ve <b>Sil</b> işlemleri ayrı tutulur. Düzenle ile mevcut bilgi korunarak değiştirilebilir.</div>
+ ${renderPersonnelList(rows)}</div>`;
+}
+function renderPersonnelList(rows){
+ if(!rows.length) return '<div class="notice">Henüz personel kaydı yok.</div>';
+ return `<div class="tablewrap"><table class="personnel-horizontal">
+ <tr><th>Personel</th><th>Bölüm</th><th>Görev</th><th>Makine / Ekip</th><th>Durum</th><th>Konaklama</th><th>İşlem</th></tr>
+ ${rows.map(x=>{
+   const i=state.personnelDirectory.indexOf(x);
+   return `<tr onclick="editPersonnelDirectory(${i})" style="cursor:pointer">
+    <td><b>👤 ${esc(x.vals[0])}</b></td>
+    <td>${esc(x.vals[1]||"-")}</td>
+    <td>${esc(x.vals[2]||"-")}</td>
+    <td>${esc(x.vals[4]||"-")}</td>
+    <td><b>${esc(x.vals[3]||"Aktif")}</b></td>
+    <td>${esc(x.vals[5]||"-")}</td>
+    <td><button onclick="event.stopPropagation();editPersonnelDirectory(${i})">Düzenle</button> <button class="red" onclick="event.stopPropagation();deletePersonnelDirectory(${i})">Sil</button></td>
+   </tr>`;
+ }).join("")}
+ </table></div>`;
+}
+function personnelStatusSummary(rows){
+ const active=rows.filter(x=>x.vals[3]==="Aktif").length;
+ const izin=rows.filter(x=>x.vals[3]==="İzinli").length;
+ const rapor=rows.filter(x=>x.vals[3]==="Raporlu").length;
+ const pasif=rows.filter(x=>x.vals[3]==="Pasif").length;
+ return `<div class="notice"><b>Personel Durumu:</b> Aktif: ${active} | İzinli: ${izin} | Raporlu: ${rapor} | Pasif: ${pasif}</div>`;
+}
+function personnelFormHtml(i=-1){
+ const x=i>=0 && state.personnelDirectory[i] ? state.personnelDirectory[i].vals : ["","","","Aktif","","",""];
+ return `<div class="panel"><h3>${i>=0?"👤 Personel Bilgilerini Güncelle":"👤 Yeni Personel"}</h3>
+ <div class="formgrid">
+ <input id="pf0" placeholder="Personel adı" value="${esc(x[0]||"")}">
+ <select id="pf1"><option>Mühendisler</option><option>Muhasebe Bölümü</option><option>Proje Bölümü</option><option>Saha Çalışanları</option></select>
+ <input id="pf2" placeholder="Görevi / Unvanı" value="${esc(x[2]||"")}">
+ <select id="pf3"><option>Aktif</option><option>İzinli</option><option>Raporlu</option><option>Pasif</option></select>
+ <input id="pf4" placeholder="Makine / Ekip" value="${esc(x[4]||"")}">
+ <input id="pf5" placeholder="Konaklama" value="${esc(x[5]||"")}">
+ <input id="pf6" placeholder="Not" value="${esc(x[6]||"")}">
+ </div>
+ <div class="actions"><button class="green" onclick="savePersonnelDirectory(${i})">${i>=0?"Güncelle":"Kaydet"}</button><button class="gray" onclick="closePersonnelForm()">Vazgeç</button>${i>=0?`<button class="red" onclick="deletePersonnelDirectory(${i})">Sil</button>`:""}</div></div>`;
+}
+function togglePersonnelForm(){
+ const f=document.getElementById("personnelForm"); f.classList.remove("hidden"); f.innerHTML=personnelFormHtml(-1);
+}
+function editPersonnelDirectory(i){
+ const f=document.getElementById("personnelForm"); f.classList.remove("hidden"); f.innerHTML=personnelFormHtml(i);
+ if(state.personnelDirectory[i]) document.getElementById("pf1").value=state.personnelDirectory[i].vals[1]||"Saha Çalışanları";
+ f.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function savePersonnelDirectory(i){
+ const vals=[
+  document.getElementById("pf0").value,document.getElementById("pf1").value,document.getElementById("pf2").value,
+  document.getElementById("pf3").value,document.getElementById("pf4").value,document.getElementById("pf5").value,document.getElementById("pf6").value
+ ];
+ if(!vals[0].trim()) return alert("Personel adını yaz.");
+ state.personnelDirectory ||= [];
+ if(i>=0) state.personnelDirectory[i]={vals}; else state.personnelDirectory.push({vals});
+ state.personnelDirectory=state.personnelDirectory.filter(x=>x && Array.isArray(x.vals) && String(x.vals[0]||"").trim().length>1);
+ save(); personnelDirectoryView();
+}
+function deletePersonnelDirectory(i){
+ if(confirm("Bu personel kaydı silinsin mi?")){state.personnelDirectory.splice(i,1);save();personnelDirectoryView();}
+}
+function closePersonnelForm(){document.getElementById("personnelForm").classList.add("hidden");}
+function closePersonnelDirectory(){document.getElementById("personnelDirectory").classList.add("hidden");renderHome();}
+
+function toggleMainCategories(){
+ const m=document.getElementById("mainCategories");
+ const s=document.getElementById("categorySubmenu");
+ const a=document.getElementById("categoryArrow");
+ const opening=m.classList.contains("hidden");
+ m.classList.toggle("hidden");
+ if(s)s.classList.add("hidden");
+ m.setAttribute("aria-hidden",opening?"false":"true");
+ if(a)a.textContent=m.classList.contains("hidden")?"▼":"▲";
+}
+function showCategorySubmenu(title,items){const s=document.getElementById("categorySubmenu");s.classList.remove("hidden");s.innerHTML=`<div class="subhead">${title}</div>`+items.map(x=>`<button onclick="${x.fn}">${x.label}</button>`).join("");} 
+function showAddMachine(){
+  const s=document.getElementById("categorySubmenu");
+  s.classList.remove("hidden");
+  s.innerHTML=`<div class="subhead">🔧 Yeni Makine Ekle</div><div class="panel">
+    <div class="formgrid">
+      <input id="newMachineCode" placeholder="Makine kodu (ör. M010)">
+      <input id="newMachineName" placeholder="Makine adı">
+      <input id="newMachineModel" placeholder="Model / Yıl">
+      <input id="newMachinePlate" placeholder="Plaka / Seri No"><input id="newMachineFuel" placeholder="Yakıt miktarı (Litre)">
+    </div>
+    <div class="actions"><button class="green" onclick="saveNewMachine()">Kaydet</button><button class="gray" onclick="categoryMachines()">Vazgeç</button></div>
+  </div>`;
+}
+function saveNewMachine(){
+  const code=document.getElementById("newMachineCode").value.trim();
+  const name=document.getElementById("newMachineName").value.trim();
+  const model=document.getElementById("newMachineModel").value.trim();
+  const plate=document.getElementById("newMachinePlate").value.trim(); const fuel=document.getElementById("newMachineFuel").value.trim();
+  if(!code||!name)return alert("Makine kodu ve makine adını gir.");
+  if(CFG.machines.some(m=>String(m[0]).toLowerCase()===code.toLowerCase()))return alert("Bu makine kodu zaten kayıtlı.");
+  CFG.machines.push([code,name,model,plate,fuel]);
+  state.stock[code] ||= []; state.tools[code] ||= [];
+  save(); categoryMachines();
+}
+
+function categoryFuel(){
+  const machines=(CFG.machines||[]).filter(m=>!(/elektrik/i.test(String(m[1]||""))));
+  showCategorySubmenu("⛽ Kullanılan Yakıt",[
+    {label:"⛽ Yakıt Kayıtları",fn:"fuelRecordsView()"},
+    ...machines.map(m=>({label:m[0]+" • "+m[1]+" • Mevcut: "+(m[4]||"—")+" L",fn:`openFuelMachine('${m[0]}')`}))
+  ]);
+}
+function fuelRecordsView(){
+  const s=document.getElementById("categorySubmenu");
+  s.classList.remove("hidden");
+  const machines=(CFG.machines||[]).filter(m=>!(/elektrik/i.test(String(m[1]||""))));
+  s.innerHTML=`<div class="subhead">⛽ Kullanılan Yakıt</div>
+    <div class="panel">
+      <div class="notice">Makinelerde kullanılan yakıt miktarlarını buradan takip edebilirsin.</div>
+      <table><tr><th>Makine</th><th>Model</th><th>Yakıt Miktarı (L)</th><th>İşlem</th></tr>
+      ${machines.map(m=>`<tr><td>${esc(m[0])}</td><td>${esc(m[1])}</td><td><b>${esc(m[4]||"0")}</b></td><td><button onclick="openFuelMachine('${m[0]}')">Yakıt Gir / Güncelle</button></td></tr>`).join("")}
+      </table>
+    </div>`;
+}
+function openFuelMachine(id){
+  const m=machine(id); if(!m)return;
+  const val=prompt(`${m[1]} için yakıt miktarı (Litre):`,m[4]||"");
+  if(val===null)return;
+  m[4]=val.trim();
+  save(); fuelRecordsView();
+}
+
+
+
+function categoryDieselFuel(){
+  state.fuelLogs ||= [];
+  const machines=(CFG.machines||[]).filter(m=>!(/elektrik/i.test(String(m[1]||""))));
+  const vehicles=state.companyVehicles||[];
+  const generators=state.generators||[];
+  const s=document.getElementById("categorySubmenu");
+  s.classList.remove("hidden");
+
+  const rows=[];
+  machines.forEach(m=>rows.push({type:"Makine",name:m[1],code:m[0]}));
+  vehicles.forEach((x,i)=>{const v=x.vals||[]; rows.push({type:"Araç",name:v[0]||"Araç",code:"V"+i});});
+  generators.forEach((x,i)=>{const v=x.vals||x; rows.push({type:"Jeneratör",name:v[0]||"Jeneratör",code:"G"+i});});
+
+  const total=(name)=>state.fuelLogs.filter(x=>x.name===name).reduce((a,x)=>a+Number(x.liters||0),0);
+  s.innerHTML=`<div class="subhead">⛽ Dizel Makineler, Araçlar ve Jeneratörler</div>
+    <div class="panel">
+      <div class="notice">Yakıt tek seferlik kayıt değildir. Her yakıt ikmalini gün gün ayrı kaydedebilirsin. Toplam tüketim otomatik hesaplanır.</div>
+      <div class="actions">
+        <button class="green" onclick="showFuelEntry()">＋ Günlük Yakıt İkmali Ekle</button>
+        <button onclick="showFuelHistory()">📋 Yakıt Geçmişi</button>
+      </div>
+      <h3>🔧 Dizel Makineler</h3>
+      <table><tr><th>Makine</th><th>Bugüne kadar toplam (L)</th><th>Son ikmal</th></tr>
+      ${machines.map(m=>{
+        const logs=state.fuelLogs.filter(x=>x.name===m[1]);
+        const last=logs.length?logs[logs.length-1]:null;
+        return `<tr><td>${esc(m[1])}</td><td><b>${total(m[1]).toFixed(1)}</b></td><td>${last?esc(last.date)+" • "+esc(last.liters)+" L":"—"}</td></tr>`;
+      }).join("")}</table>
+      <h3>🚚 Dizel Araçlar</h3>
+      <table><tr><th>Araç</th><th>Plaka</th><th>Toplam (L)</th><th>Son ikmal</th></tr>
+      ${vehicles.map(x=>{
+        const v=x.vals||[], name=v[0]||"Araç", logs=state.fuelLogs.filter(x=>x.name===name), last=logs.length?logs[logs.length-1]:null;
+        return `<tr><td>${esc(name)}</td><td>${esc(v[2]||"")}</td><td><b>${total(name).toFixed(1)}</b></td><td>${last?esc(last.date)+" • "+esc(last.liters)+" L":"—"}</td></tr>`;
+      }).join("")}</table>
+      <h3>⚡ Jeneratörler</h3>
+      <table><tr><th>Jeneratör</th><th>Toplam (L)</th><th>Son ikmal</th></tr>
+      ${generators.map(x=>{
+        const v=x.vals||x, name=v[0]||"Jeneratör", logs=state.fuelLogs.filter(x=>x.name===name), last=logs.length?logs[logs.length-1]:null;
+        return `<tr><td>${esc(name)}</td><td><b>${total(name).toFixed(1)}</b></td><td>${last?esc(last.date)+" • "+esc(last.liters)+" L":"—"}</td></tr>`;
+      }).join("")}</table>
+    </div>`;
+}
+
+function showFuelEntry(){
+  state.fuelLogs ||= [];
+  const s=document.getElementById("categorySubmenu");
+  const machines=(CFG.machines||[]).filter(m=>!(/elektrik/i.test(String(m[1]||""))));
+  const vehicles=state.companyVehicles||[];
+  const generators=state.generators||[];
+  const opts=[
+    ...machines.map(m=>`<option value="${esc(m[1])}">Makine • ${esc(m[1])}</option>`),
+    ...vehicles.map(x=>{const v=x.vals||[];return `<option value="${esc(v[0]||"")}">Araç • ${esc(v[0]||"")} • ${esc(v[2]||"")}</option>`}),
+    ...generators.map(x=>{const v=x.vals||x;return `<option value="${esc(v[0]||"")}">Jeneratör • ${esc(v[0]||"")}</option>`})
+  ];
+  s.innerHTML=`<div class="subhead">⛽ Günlük Yakıt İkmali</div><div class="panel">
+    <div class="formgrid">
+      <input id="fuelDate" type="date" value="${new Date().toISOString().slice(0,10)}">
+      <select id="fuelTarget">${opts.join("")}</select>
+      <input id="fuelLiters" type="number" min="0" step="0.1" placeholder="İkmal miktarı (Litre)">
+      <input id="fuelKm" placeholder="KM / Sayaç (varsa)">
+      <input id="fuelNote" placeholder="Not">
+    </div>
+    <div class="actions"><button class="green" onclick="saveFuelEntry()">Kaydet</button><button class="gray" onclick="categoryDieselFuel()">Vazgeç</button></div>
+  </div>`;
+}
+function saveFuelEntry(){
+  const date=document.getElementById("fuelDate").value;
+  const name=document.getElementById("fuelTarget").value;
+  const liters=Number(document.getElementById("fuelLiters").value);
+  if(!date||!name||!(liters>0))return alert("Tarih, araç/makine ve litre miktarı zorunlu.");
+  state.fuelLogs ||= [];
+  state.fuelLogs.push({
+    date,name,liters,
+    km:document.getElementById("fuelKm").value.trim(),
+    note:document.getElementById("fuelNote").value.trim()
+  });
+  state.fuelLogs.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  save(); categoryDieselFuel();
+}
+function showFuelHistory(){
+  state.fuelLogs ||= [];
+  const s=document.getElementById("categorySubmenu");
+  const logs=[...state.fuelLogs].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  s.innerHTML=`<div class="subhead">📋 Günlük Yakıt Geçmişi</div><div class="panel">
+    <button class="gray" onclick="categoryDieselFuel()">← Dizel Bölümüne Dön</button>
+    <table><tr><th>Tarih</th><th>Makine / Araç / Jeneratör</th><th>İkmal (L)</th><th>KM / Sayaç</th><th>Not</th><th>İşlem</th></tr>
+    ${logs.map((x,i)=>`<tr><td>${esc(x.date)}</td><td>${esc(x.name)}</td><td><b>${esc(String(x.liters))}</b></td><td>${esc(x.km||"")}</td><td>${esc(x.note||"")}</td><td><button class="red" onclick="deleteFuelLog(${state.fuelLogs.indexOf(x)})">Sil</button></td></tr>`).join("")}
+    </table>
+  </div>`;
+}
+function deleteFuelLog(i){
+  if(confirm("Bu yakıt ikmali kaydı silinsin mi?")){
+    state.fuelLogs.splice(i,1); save(); showFuelHistory();
+  }
+}
+
+function categoryMachines(){showCategorySubmenu("🔧 Makineler — makine seç",[{label:"＋ Yeni Makine Ekle",fn:"showAddMachine()"},...CFG.machines.map(m=>({label:m[0]+" • "+m[1]+(/elektrik/i.test(String(m[1]||""))?"":" • Yakıt: "+(m[4]||"—")+" L"),fn:`openMachineFromCategory('`+m[0]+`')`}))]);} function openMachineFromCategory(id){document.getElementById("categorySubmenu").classList.add("hidden");document.getElementById("mainCategories").classList.add("hidden");document.getElementById("categoryArrow").textContent="▼";openMachine(id);} function categoryPersonnel(){showCategorySubmenu("👥 Personel",[{label:"Güncel Çalışan Personel",fn:"personnelDirectoryView()"},{label:"Makine Personel Durumu",fn:"showMachinePersonnelChooser()"}]);} function showMachinePersonnelChooser(){showCategorySubmenu("👥 Makine Personel Durumu — makine seç",CFG.machines.map(m=>({label:m[0]+" • "+m[1],fn:`openMachinePersonnel('`+m[0]+`')`})));} function openMachinePersonnel(id){current=id;section="personnel";document.getElementById("categorySubmenu").classList.add("hidden");document.getElementById("mainCategories").classList.add("hidden");document.getElementById("categoryArrow").textContent="▼";renderMachine();} function categoryStock(){showCategorySubmenu("📦 Stok / Depo",[{label:"Depo Stokları",fn:"depotView()"},{label:"Makine Envanterleri",fn:"showMachineInventoryChooser()"}]);} function showMachineInventoryChooser(){showCategorySubmenu("📦 Makine Envanteri — makine seç",CFG.machines.map(m=>({label:m[0]+" • "+m[1],fn:`openMachineSection('`+m[0]+`','inventory')`})));} function categoryLodging(){showCategorySubmenu("🏠 Konaklama",[{label:"Odalar / Personel",fn:"lodgingSection='rooms';lodgingView()"},{label:"Demirbaş / Malzeme",fn:"lodgingSection='assets';lodgingView()"},{label:"Şantiye Dışı Konaklama",fn:"externalLodgingView()"}]);} function categoryVehicles(){showCategorySubmenu("🚚 Araçlar",[{label:"Şirket Araçları (9 araç)",fn:"companyVehiclesView()"}]);} function categoryPurchases(){showCategorySubmenu("🧾 Alınanlar",[{label:"Alınanlar / Cari - Peşin Alımlar",fn:"purchasesView()"}]);} function openMachineSection(id,sec){current=id;section=sec;document.getElementById("categorySubmenu").classList.add("hidden");document.getElementById("mainCategories").classList.add("hidden");document.getElementById("categoryArrow").textContent="▼";openMachine(id);} 
+
+
+function vehicleDateStatus(value){
+  const s=String(value||"").trim();
+  if(!/^\d{2}\.\d{2}\.\d{4}$/.test(s)) return {text:s||"—",cls:""};
+  const [d,m,y]=s.split(".").map(Number);
+  const dt=new Date(y,m-1,d); const today=new Date(2026,7,11);
+  dt.setHours(0,0,0,0); today.setHours(0,0,0,0);
+  if(dt<today) return {text:s+" • SÜRESİ GEÇTİ",cls:"expired-date"};
+  if(dt.getTime()===today.getTime()) return {text:s+" • BUGÜN",cls:"today-date"};
+  return {text:s,cls:""};
+}
+
+
+function showAddCompanyVehicle(){
+  const box=document.getElementById("companyVehicleForm");
+  if(!box)return;
+  box.classList.remove("hidden");
+  box.innerHTML=`<div class="panel">
+    <h3>🚚 Yeni Şirket Aracı</h3>
+    <div class="formgrid">
+      <input id="cvName" placeholder="Araç / Marka">
+      <input id="cvModel" placeholder="Model / Yıl">
+      <input id="cvPlate" placeholder="Plaka">
+      <input id="cvInsurance" placeholder="Sigorta tarihi (GG.AA.YYYY)">
+      <input id="cvInspection" placeholder="Muayene tarihi (GG.AA.YYYY)">
+      <input id="cvDriver" placeholder="Sürücü">
+      <input id="cvKm" placeholder="KM">
+      <input id="cvNote" placeholder="Not">
+    </div>
+    <div class="actions">
+      <button class="green" onclick="saveNewCompanyVehicle()">Kaydet</button>
+      <button class="gray" onclick="document.getElementById('companyVehicleForm').classList.add('hidden')">Vazgeç</button>
+    </div>
+  </div>`;
+  box.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function saveNewCompanyVehicle(){
+  const name=document.getElementById("cvName")?.value.trim();
+  const model=document.getElementById("cvModel")?.value.trim();
+  const plate=document.getElementById("cvPlate")?.value.trim();
+  if(!name)return alert("Araç / marka bilgisini yaz.");
+  if(!plate)return alert("Plakayı yaz.");
+  state.companyVehicles ||= [];
+  const exists=state.companyVehicles.some(x=>x.vals && String(x.vals[2]||"").replace(/\s/g,"").toLocaleUpperCase("tr-TR")===plate.replace(/\s/g,"").toLocaleUpperCase("tr-TR"));
+  if(exists)return alert("Bu plakaya ait araç zaten kayıtlı.");
+  const v=Array(16).fill("");
+  v[0]=name; v[1]=model; v[2]=plate; v[3]=document.getElementById("cvDriver").value.trim();
+  v[4]=document.getElementById("cvKm").value.trim();
+  v[8]="Aktif";
+  v[9]=`${document.getElementById("cvInsurance").value.trim()} / ${document.getElementById("cvInspection").value.trim()}`;
+  v[10]=document.getElementById("cvNote").value.trim();
+  state.companyVehicles.push({vals:v});
+  save(); companyVehiclesView();
+}
+
+function companyVehiclesView(){
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("machine").classList.add("hidden");
+  document.getElementById("depot").classList.add("hidden");
+  document.getElementById("lodging").classList.add("hidden");
+  document.getElementById("externalLodging").classList.add("hidden");
+  document.getElementById("personnelDirectory").classList.add("hidden");
+  document.getElementById("purchases").classList.add("hidden");
+  const d=document.getElementById("companyVehicles"); d.classList.remove("hidden");
+  const rows=[...(state.companyVehicles||[])].sort((a,b)=>{
+    const ma=parseInt(String((a.vals||[])[1]||"").match(/\d{4}/)?.[0]||"0",10);
+    const mb=parseInt(String((b.vals||[])[1]||"").match(/\d{4}/)?.[0]||"0",10);
+    return mb-ma;
+  });
+  d.innerHTML=`<div class="panel">
+    <button class="gray" onclick="closeCompanyVehicles()">← Kategoriler</button>
+    <h2>🚚 Şirket Araçları <span class="pill">${rows.length} araç</span></h2>
+    <div class="actions"><button class="green" onclick="showAddCompanyVehicle()">＋ Araç Ekle</button></div>
+    <div id="companyVehicleForm" class="hidden"></div>
+    <div class="notice">9 araçlık güncel şirket araç listesi.</div>
+    <table>
+      <tr><th>Araç</th><th>Model</th><th>Plaka</th><th>Sigorta</th><th>Muayene</th><th>Not</th><th>İşlem</th></tr>
+      ${rows.map((x,i)=>{
+        const v=x.vals||[];
+        const parts=String(v[9]||"").split(" / ");
+        return `<tr>
+          <td>${esc(v[0]||"")}</td><td>${esc(v[1]||"")}</td><td>${esc(v[2]||"")}</td>
+          <td class="${vehicleDateStatus(parts[0]).cls}">${esc(vehicleDateStatus(parts[0]).text)}</td><td class="${vehicleDateStatus(parts[1]).cls}">${esc(vehicleDateStatus(parts[1]).text)}</td><td>${esc(v[10]||"")}</td>
+          <td><button onclick="viewCompanyVehicle(${i})">Aç</button> <button onclick="editCompanyVehicle(${i})">Düzenle</button> <button class="red" onclick="deleteCompanyVehicle(${i})">Sil</button></td>
+        </tr>`;
+      }).join("")}
+    </table>
+  </div>`;
+}
+function viewCompanyVehicle(i){
+  const x=state.companyVehicles[i]; if(!x)return;
+  const v=x.vals||[];
+  const parts=String(v[9]||"").split(" / ");
+  const d=document.getElementById("companyVehicles");
+  d.innerHTML=`<div class="panel">
+    <button class="gray" onclick="companyVehiclesView()">← Araç Listesi</button>
+    <h2>🚚 ${esc(v[0]||"Araç")}</h2>
+    <div class="grid">
+      <div class="card"><b>Plaka</b><br>${esc(v[2]||"—")}</div>
+      <div class="card"><b>Model</b><br>${esc(v[1]||"—")}</div>
+      <div class="card ${vehicleDateStatus(parts[0]).cls}"><b>Sigorta</b><br>${esc(vehicleDateStatus(parts[0]).text)}</div>
+      <div class="card ${vehicleDateStatus(parts[1]).cls}"><b>Muayene</b><br>${esc(vehicleDateStatus(parts[1]).text)}</div>
+      <div class="card"><b>Durum</b><br>${esc(v[8]||"Aktif")}</div>
+      <div class="card"><b>Not</b><br>${esc(v[10]||"—")}</div>
+    </div>
+    <div class="actions"><button class="red" onclick="deleteCompanyVehicle(${i})">Sil</button></div>
+  </div>`;
+}
+
+function editCompanyVehicle(i){
+  const x=state.companyVehicles[i]; if(!x)return;
+  const v=x.vals||[];
+  const parts=String(v[9]||"").split(" / ");
+  const fields=[
+    ["Araç / Marka",v[0]||""],["Model / Yıl",v[1]||""],["Plaka",v[2]||""],
+    ["Sigorta tarihi",parts[0]||""],["Muayene tarihi",parts[1]||""],
+    ["Sürücü",v[3]||""],["KM",v[4]||""],["Not",v[10]||""]
+  ];
+  for(const f of fields){
+    const nv=prompt(f[0]+":",f[1]);
+    if(nv===null)return;
+    f[1]=nv;
+  }
+  v[0]=fields[0][1];v[1]=fields[1][1];v[2]=fields[2][1];v[3]=fields[5][1];v[4]=fields[6][1];
+  v[9]=fields[3][1]+" / "+fields[4][1];v[10]=fields[7][1];
+  x.vals=v; save(); companyVehiclesView();
+}
+
+function deleteCompanyVehicle(i){
+  if(confirm("Bu araç kaydı silinsin mi?")){
+    state.companyVehicles.splice(i,1); save(); companyVehiclesView();
+  }
+}
+function closeCompanyVehicles(){
+  document.getElementById("companyVehicles").classList.add("hidden");
+  renderHome();
+}
+
+
+function purchasesView(){
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("machine").classList.add("hidden");
+  document.getElementById("companyVehicles").classList.add("hidden");
+  document.getElementById("depot").classList.add("hidden");
+  document.getElementById("personnelDirectory").classList.add("hidden");
+  document.getElementById("lodging").classList.add("hidden");
+  document.getElementById("externalLodging").classList.add("hidden");
+  const d=document.getElementById("purchases"); d.classList.remove("hidden");
+  state.purchases ||= [];
+  d.innerHTML=`<div class="panel">
+    <button class="gray" onclick="closePurchases()">← Kategoriler</button>
+    <h2>🧾 Alınanlar / Cari - Peşin Alımlar</h2>
+    <div class="notice">Alınan malzeme ve parçaları burada kaydedebilirsin.</div>
+    <div class="formgrid">
+      <input id="q0" type="date" value="${new Date().toISOString().slice(0,10)}">
+      <input id="q1" placeholder="Malzeme / Parça">
+      <input id="q2" placeholder="Miktar">
+      <input id="q3" placeholder="Tedarikçi">
+      <input id="q4" placeholder="Fiyat">
+      <input id="q5" placeholder="Ödeme şekli">
+      <input id="q6" placeholder="Hangi makine / ekip">
+      <input id="q7" placeholder="Not">
+      <button class="green" onclick="addPurchase()">＋ Alınan Ekle</button>
+    </div>
+    <table>
+      <tr><th>Tarih</th><th>Malzeme / Parça</th><th>Miktar</th><th>Tedarikçi</th><th>Fiyat</th><th>Ödeme</th><th>Makine / Ekip</th><th>Not</th><th>İşlem</th></tr>
+      ${state.purchases.map((x,i)=>{const v=x.vals||x;return `<tr>${[0,1,2,3,4,5,6,7].map(n=>`<td>${esc(v[n]??"")}</td>`).join("")}<td><button onclick="editPurchase(${i})">Düzenle</button> <button class="red" onclick="delPurchase(${i})">Sil</button></td></tr>`}).join("")}
+    </table>
+  </div>`;
+}
+function addPurchase(){
+  state.purchases ||= [];
+  const vals=[]; for(let i=0;i<8;i++) vals.push(document.getElementById("q"+i).value);
+  if(!vals[1].trim()) return alert("Malzeme / parça adını gir.");
+  state.purchases.push({vals}); save(); purchasesView();
+}
+function editPurchase(i){
+  const r=state.purchases[i]; if(!r)return; const v=(r.vals||r).slice();
+  const labels=["Tarih","Malzeme / Parça","Miktar","Tedarikçi","Fiyat","Ödeme şekli","Makine / Ekip","Not"];
+  for(let j=0;j<8;j++){const nv=prompt(labels[j]+":",v[j]??"");if(nv===null)return;v[j]=nv;}
+  state.purchases[i]={vals:v}; save(); purchasesView();
+}
+function delPurchase(i){if(confirm("Bu alınan kaydı silinsin mi?")){state.purchases.splice(i,1);save();purchasesView();}}
+function closePurchases(){document.getElementById("purchases").classList.add("hidden");renderHome();}
+
+
+function globalSearch(){
+  const q=(document.getElementById("search")?.value||"").trim().toLocaleLowerCase("tr-TR");
+  const box=document.getElementById("globalSearchResults");
+  if(!box)return;
+  if(!q){box.classList.add("hidden");box.innerHTML="";return;}
+  const hits=[];
+  if(/yakıt|yakit|dizel|jeneratör|jenerator/i.test(q)){
+    hits.push({type:"Kategori",label:"⛽ Dizel Makineler ve Araçlar",fn:"categoryDieselFuel()"});
+  }
+  (CFG.machines||[]).forEach(m=>{
+    if(m.join(" ").toLocaleLowerCase("tr-TR").includes(q))
+      hits.push({type:"Makine",label:m[0]+" • "+m[1],fn:`openMachineFromSearch('${m[0]}')`});
+    (state.stock[m[0]]||[]).forEach(x=>{
+      if(String(x.name||"").toLocaleLowerCase("tr-TR").includes(q))
+        hits.push({type:"Envanter",label:m[0]+" • "+m[1]+" • "+x.name,fn:`openMachineFromSearch('${m[0]}')`});
+    });
+  });
+  (state.depot||[]).forEach((x,i)=>{
+    const v=[x.name,x.qty,x.unit,x.note].join(" ");
+    if(v.toLocaleLowerCase("tr-TR").includes(q))
+      hits.push({type:"Depo",label:x.name+" • "+(x.qty??"")+" "+(x.unit??""),fn:"depotView()"});
+  });
+  (state.personnelDirectory||[]).forEach((x,i)=>{
+    const v=(x.vals||[]).join(" ");
+    if(v.toLocaleLowerCase("tr-TR").includes(q))
+      hits.push({type:"Personel",label:(x.vals||[]).filter(Boolean).join(" • "),fn:"personnelDirectoryView()"});
+  });
+  (state.companyVehicles||[]).forEach((x,i)=>{
+    const v=(x.vals||[]).join(" ");
+    if(v.toLocaleLowerCase("tr-TR").includes(q))
+      hits.push({type:"Araç",label:(x.vals||[]).slice(0,4).filter(Boolean).join(" • "),fn:"companyVehiclesView()"});
+  });
+  (state.purchases||[]).forEach((x,i)=>{
+    const v=(x.vals||x).join(" ");
+    if(v.toLocaleLowerCase("tr-TR").includes(q))
+      hits.push({type:"Alınan",label:(x.vals||x).filter(Boolean).join(" • "),fn:"purchasesView()"});
+  });
+  if(!hits.length){
+    box.innerHTML=`<div class="search-empty">“${esc(q)}” için kayıt bulunamadı.</div>`;
+  }else{
+    box.innerHTML=hits.slice(0,40).map(h=>`<button class="search-hit" onclick="${h.fn}"><span>${esc(h.type)}</span>${esc(h.label)}</button>`).join("");
+  }
+  box.classList.remove("hidden");
+}
+function openMachineFromSearch(id){
+  const box=document.getElementById("globalSearchResults"); if(box)box.classList.add("hidden");
+  const inp=document.getElementById("search"); if(inp)inp.value="";
+  openMachine(id);
+}
+
+function renderHome(){
+ document.getElementById("home").classList.remove("hidden");
+ document.getElementById("machine").classList.add("hidden");
+ document.getElementById("depot").classList.add("hidden");
+ document.getElementById("lodging").classList.add("hidden");
+ document.getElementById("externalLodging").classList.add("hidden");
+ document.getElementById("companyVehicles").classList.add("hidden");
+ document.getElementById("purchases").classList.add("hidden");
+ const g=document.getElementById("grid");
+ if(g)g.innerHTML="";
+}
+function openMachine(id){current=id;section="inventory";renderMachine();}
+function machinePersonnelFor(id){
+ const rows=(state.personnelDirectory||[]).filter(x=>x && Array.isArray(x.vals) && String(x.vals[0]||"").trim().length>1);
+ const match={
+  M001:v=>/TSM 4 Silindir/i.test(v),
+  M002:v=>/TSM 6 Silindir/i.test(v),
+  M003:v=>/Kamyon Üstü TSM/i.test(v),
+  M004:v=>/Tysim KR 150 Yeşil/i.test(v),
+  M005:v=>/Tysim KR 150 Sarı/i.test(v),
+  M006:v=>/Tysim 240 Sarı/i.test(v),
+  M007:v=>/Konteyner Tam Otomatik Santral/i.test(v),
+  M008:v=>/Tekerlekli Yarı Otomatik Santral/i.test(v),
+  M009:v=>/Tekerlekli Elektrikli/i.test(v),
+  M010:v=>/Tekerlekli Dizel/i.test(v),
+  M011:v=>/Jeneratör/i.test(v)
+ };
+ const fn=match[id];
+ if(id==="M004"){
+  const names=["Furkan Nure","Fadıl Tüzün"];
+  return rows.filter(x=>names.includes(String(x.vals[0]||"")) && /Tysim KR 150 Yeşil/i.test(String(x.vals[4]||"")));
+ }
+ if(id==="M005"){
+  const names=["Salih Çiçek","Nevzat Ferik","Mehmet Kaya"];
+  return rows.filter(x=>names.includes(String(x.vals[0]||"")) && /Tysim KR 150 Sarı/i.test(String(x.vals[4]||"")));
+ }
+ return fn?rows.filter(x=>fn(String(x.vals[4]||""))):rows.filter(x=>String(x.vals[4]||"")===String(machine(id)?.[1]||""));
+}
+
+
+function showChangeMachinePersonnel(){
+  const box=document.getElementById("machinePersonnelForm");
+  if(!box)return;
+  const m=machine(current);
+  state.personnelDirectory ||= [];
+  const all=state.personnelDirectory.filter(x=>x && x.vals && String(x.vals[0]||"").trim());
+  const assigned=all.filter(x=>String(x.vals[4]||"")===String(m[1]||""));
+  const unassigned=all.filter(x=>String(x.vals[4]||"")!==String(m[1]||""));
+  box.classList.remove("hidden");
+  box.innerHTML=`<div class="panel">
+    <h3>↔ ${esc(m[1])} — Manuel Personel Değiştirme</h3>
+    <div class="notice">Mevcut personeli başka bir makineye aktarabilir veya başka bir personeli bu makineye atayabilirsin.</div>
+    <div class="formgrid">
+      <select id="changeFrom">
+        <option value="">Bu makinedeki personeli seç</option>
+        ${assigned.map(x=>`<option value="${esc(x.vals[0])}">${esc(x.vals[0])} — ${esc(x.vals[2]||"")}</option>`).join("")}
+      </select>
+      <select id="changeToMachine">
+        <option value="">Yeni makineyi seç</option>
+        ${CFG.machines.filter(mm=>mm[0]!==current).map(mm=>`<option value="${esc(mm[1])}">${esc(mm[0])} • ${esc(mm[1])}</option>`).join("")}
+      </select>
+      <select id="changePersonIn">
+        <option value="">Bu makineye personel seç</option>
+        ${unassigned.map(x=>`<option value="${esc(x.vals[0])}">${esc(x.vals[0])} — ${esc(x.vals[2]||"")}</option>`).join("")}
+      </select>
+    </div>
+    <div class="actions">
+      <button onclick="moveMachinePersonnel()">Seçili Personeli Taşı</button>
+      <button class="green" onclick="assignSelectedPersonnel()">Seçili Personeli Bu Makineye Ata</button>
+      <button class="gray" onclick="document.getElementById('machinePersonnelForm').classList.add('hidden')">Vazgeç</button>
+    </div>
+  </div>`;
+  box.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function moveMachinePersonnel(){
+  const name=document.getElementById("changeFrom")?.value;
+  const target=document.getElementById("changeToMachine")?.value;
+  if(!name)return alert("Taşınacak personeli seç.");
+  if(!target)return alert("Yeni makineyi seç.");
+  const p=(state.personnelDirectory||[]).find(x=>x.vals && x.vals[0]===name);
+  if(!p)return alert("Personel bulunamadı.");
+  p.vals[4]=target;
+  save(); renderMachine();
+}
+function assignSelectedPersonnel(){
+  const name=document.getElementById("changePersonIn")?.value;
+  if(!name)return alert("Bu makineye atanacak personeli seç.");
+  const m=machine(current);
+  const p=(state.personnelDirectory||[]).find(x=>x.vals && x.vals[0]===name);
+  if(!p)return alert("Personel bulunamadı.");
+  p.vals[4]=m[1];
+  save(); renderMachine();
+}
+
+function showAddMachinePersonnel(){
+  const box=document.getElementById("machinePersonnelForm");
+  if(!box)return;
+  const m=machine(current);
+  box.classList.remove("hidden");
+  box.innerHTML=`<div class="panel">
+    <h3>👤 ${esc(m[1])} — Personel Ekle</h3>
+    <div class="formgrid">
+      <input id="mpName" placeholder="Personel adı">
+      <input id="mpRole" placeholder="Görevi / Unvanı">
+      <select id="mpStatus"><option>Aktif</option><option>İzinli</option><option>Raporlu</option><option>Pasif</option></select>
+      <input id="mpStay" placeholder="Konaklama">
+      <input id="mpNote" placeholder="Not">
+    </div>
+    <div class="actions">
+      <button class="green" onclick="saveMachinePersonnel()">Kaydet</button>
+      <button class="gray" onclick="document.getElementById('machinePersonnelForm').classList.add('hidden')">Vazgeç</button>
+    </div>
+  </div>`;
+  box.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function saveMachinePersonnel(){
+  const name=document.getElementById("mpName")?.value.trim();
+  const role=document.getElementById("mpRole")?.value.trim();
+  if(!name)return alert("Personel adını yaz.");
+  if(!role)return alert("Görevi / unvanı yaz.");
+  const m=machine(current);
+  state.personnelDirectory ||= [];
+  const existing=state.personnelDirectory.find(x=>x.vals && x.vals[0]===name);
+  const vals=[name,"Saha Çalışanları",role,document.getElementById("mpStatus").value,m[1],document.getElementById("mpStay").value.trim(),document.getElementById("mpNote").value.trim()];
+  if(existing) existing.vals=vals;
+  else state.personnelDirectory.push({vals});
+  save();
+  renderMachine();
+}
+
+
+function editMachine(id){
+  const m=machine(id); if(!m)return;
+  const code=prompt("Makine kodu:",m[0]); if(code===null)return;
+  const name=prompt("Makine adı:",m[1]); if(name===null)return;
+  const model=prompt("Model / Yıl:",m[2]||""); if(model===null)return;
+  const plate=prompt("Plaka / Seri No:",m[3]||""); if(plate===null)return;
+  let fuel=m[4]||""; if(!/elektrik/i.test(String(m[1]||""))){const nf=prompt("Yakıt miktarı (Litre):",fuel); if(nf===null)return; fuel=nf.trim();}else fuel="";
+  m[0]=code.trim();m[1]=name.trim();m[2]=model.trim();m[3]=plate.trim();m[4]=fuel;
+  state.stock[m[0]] ||= []; state.tools[m[0]] ||= [];
+  save(); current=m[0]; renderMachine();
+}
+function renderMachine(){
+ const m=machine(current),el=document.getElementById("machine");
+ document.getElementById("home").classList.add("hidden");el.classList.remove("hidden");
+ const stock=state.stock[current]||[],tools=state.tools[current]||[];
+ const people=machinePersonnelFor(current);
+ const peopleHtml=`<div class="panel"><h3>👥 Bu Makinede Çalışan Personel</h3>
+ ${people.length?`<div class="tablewrap"><table class="machine-personnel-table">
+ <tr><th>Personel</th><th>Görev</th><th>Durum</th><th>Konaklama</th></tr>
+ ${people.map(x=>`<tr><td><b>${esc(x.vals[0])}</b></td><td>${esc(x.vals[2]||"-")}</td><td>${esc(x.vals[3]||"Aktif")}</td><td>${esc(x.vals[5]||"-")}</td></tr>`).join("")}
+ </table></div>`:'<div class="notice">Bu makineye atanmış kayıtlı personel yok.</div>'}
+ <div class="actions">
+  <button onclick="section='personnel';renderMachine()">Personel Durumu / Güncelle</button>
+  <button class="green" onclick="showAddMachinePersonnel()">＋ Personel Ekle</button>
+  <button onclick="showChangeMachinePersonnel()">↔ Personel Değiştir</button>
+</div>
+<div id="machinePersonnelForm" class="hidden"></div></div>`;
+ el.innerHTML=`<div class="panel"><button class="gray" onclick="renderHome()">← Makineler</button>
+ <button onclick="editMachine(current)">✎ Makineyi Düzenle</button><h2>${esc(m[1])}</h2><div class="muted">${m[0]} • ${esc(m[2])}${/elektrik/i.test(String(m[1]||""))?"":` • Yakıt: ${esc(m[4]||"—")} L`}</div>
+ <div class="actions">
+ <button onclick="section='inventory';renderMachine()">Envanter</button>
+ <button onclick="section='tools';renderMachine()">El Aletleri</button>
+ <button onclick="section='fixed';renderMachine()">Sabit Ekipman</button>
+ <button onclick="section='spare';renderMachine()">Yedekler</button>
+ <button onclick="section='maint';renderMachine()">Bakım</button>
+ <button onclick="section='fail';renderMachine()">Arıza</button>
+ <button onclick="section='work';renderMachine()">Yapılan İş</button>
+ <button onclick="section='supply';renderMachine()">Tedarik</button>
+ <button onclick="section='daily';renderMachine()">Günlük Faaliyet</button>
+ <button onclick="section='personnel';renderMachine()">Personel Durumu</button></div></div>${peopleHtml}`;
+ if(section==="inventory") inventoryView(el,stock);
+ else if(section==="tools") toolsView(el,tools);
+ else if(section==="daily") dailyView(el);
+ else if(section==="personnel") personnelView(el);
+ else logsView(el,section);
+}
+function inventoryView(el,rows){
+ el.innerHTML+=`<div class="panel"><h3>Envanter</h3>
+ <div class="formgrid"><input id="newName" placeholder="Yeni malzeme"><input id="newQty" type="number" step="any" placeholder="Adet"><input id="newUnit" placeholder="Birim (adet, m, lt...)"><input id="newNote" placeholder="Not"></div>
+ <div class="actions"><button class="green" onclick="addStock()">Malzeme Ekle</button></div>
+ <table><tr><th>Malzeme</th><th>Mevcut</th><th>Birim</th><th>Not</th><th>İşlem</th></tr>
+ ${rows.map((r,i)=>`<tr><td>${esc(r.name)}</td><td><input style="width:90px" type="number" step="any" value="${r.qty}" onchange="setQty(${i},this.value)"></td><td>${esc(r.unit)}</td><td>${esc(r.note)}</td><td><button onclick="useStock(${i})">Çıkış</button> <button onclick="editStock(${i})">Düzenle</button> <button class="red" onclick="delStock(${i})">Sil</button></td></tr>`).join("")}</table>
+ </div>`;
+}
+function addStock(){let n=document.getElementById("newName").value.trim();if(!n)return alert("Malzeme adını yaz.");state.stock[current].push({id:"x"+Date.now(),name:n,qty:Number(document.getElementById("newQty").value||0),unit:document.getElementById("newUnit").value||"adet",note:document.getElementById("newNote").value||""});save();renderMachine();}
+function setQty(i,v){state.stock[current][i].qty=Number(v||0);save();}
+function useStock(i){let r=state.stock[current][i],v=prompt(`${r.name} için çıkış miktarı:`);if(v===null)return;v=Number(v);if(!isFinite(v)||v<=0)return alert("Geçerli miktar gir.");if(v>Number(r.qty))return alert("Stok yetersiz.");r.qty=Number(r.qty)-v;state.logs.push({date:new Date().toLocaleString("tr-TR"),machine:current,type:"Stok Çıkışı",item:r.name,qty:v});save();renderMachine();}
+function editStock(i){
+  const r=state.stock[current][i]; if(!r)return;
+  const name=prompt("Malzeme adı:",r.name??""); if(name===null)return;
+  const qty=prompt("Miktar:",r.qty??0); if(qty===null)return;
+  const unit=prompt("Birim:",r.unit??"adet"); if(unit===null)return;
+  const note=prompt("Not:",r.note??""); if(note===null)return;
+  r.name=name.trim(); r.qty=Number(qty||0); r.unit=unit||"adet"; r.note=note; save(); renderMachine();
+}
+function delStock(i){if(confirm("Bu malzeme kaydı silinsin mi?")){state.stock[current].splice(i,1);save();renderMachine();}}
+function toolsView(el,rows){
+ el.innerHTML+=`<div class="panel"><h3>El Aletleri</h3>
+ <div class="formgrid"><input id="toolName" placeholder="El aleti"><input id="toolQty" placeholder="Mevcut adet"><input id="toolNote" placeholder="Not"></div>
+ <div class="actions"><button class="green" onclick="addTool()">El Aleti Ekle</button></div>
+ <table><tr><th>El Aleti</th><th>Adet</th><th>Not</th><th>İşlem</th></tr>
+ ${rows.map((r,i)=>`<tr><td>${esc(r.name)}</td><td><input style="width:90px" value="${esc(r.qty)}" onchange="state.tools[current][${i}].qty=this.value;save()"></td><td>${esc(r.note)}</td><td><button onclick="editTool(${i})">Düzenle</button> <button class="red" onclick="delTool(${i})">Sil</button></td></tr>`).join("")}</table></div>`;
+}
+function addTool(){let n=document.getElementById("toolName").value.trim();if(!n)return alert("El aleti adını yaz.");state.tools[current].push({id:"t"+Date.now(),name:n,qty:document.getElementById("toolQty").value,note:document.getElementById("toolNote").value});save();renderMachine();}
+function editTool(i){
+  const r=state.tools[current][i]; if(!r)return;
+  const name=prompt("El aleti:",r.name??""); if(name===null)return;
+  const qty=prompt("Mevcut adet:",r.qty??""); if(qty===null)return;
+  const note=prompt("Not:",r.note??""); if(note===null)return;
+  r.name=name.trim(); r.qty=qty; r.note=note; save(); renderMachine();
+}
+function delTool(i){if(confirm("Silinsin mi?")){state.tools[current].splice(i,1);save();renderMachine();}}
+
+function dailyView(el){
+ const rows=state.daily||[];
+ const mine=rows.filter(x=>x.machine===current);
+ el.innerHTML+=`<div class="panel"><h3>Günlük Faaliyet</h3>
+ <div class="formgrid">
+ <input id="d0" type="date" value="${new Date().toISOString().slice(0,10)}">
+ <input id="d1" placeholder="Şantiye / Proje">
+ <input id="d2" placeholder="Yapılan faaliyet">
+ <input id="d3" placeholder="Çalışma saati / metraj">
+ <input id="d4" placeholder="Kullanılan makine / ekipman">
+ <input id="d5" placeholder="Açıklama">
+ </div>
+ <div class="actions"><button class="green" onclick="addDaily()">Günlük Faaliyet Ekle</button></div>
+ <table><tr><th>Tarih</th><th>Şantiye / Proje</th><th>Faaliyet</th><th>Saat / Metraj</th><th>Ekipman</th><th>Açıklama</th><th>İşlem</th></tr>
+ ${mine.map((x,i)=>`<tr>${x.vals.map(v=>`<td>${esc(v)}</td>`).join("")}<td><button onclick="editDaily(${rows.indexOf(x)})">Düzenle</button> <button class="red" onclick="delDaily(${rows.indexOf(x)})">Sil</button></td></tr>`).join("")}
+ </table></div>`;
+}
+function addDaily(){
+ state.daily ||= [];
+ state.daily.push({machine:current,vals:[
+  document.getElementById("d0").value,document.getElementById("d1").value,document.getElementById("d2").value,
+  document.getElementById("d3").value,document.getElementById("d4").value,document.getElementById("d5").value
+ ]});
+ save();renderMachine();
+}
+function editDaily(i){
+  const r=state.daily[i]; if(!r)return;
+  const labels=["Tarih","Şantiye / Proje","Faaliyet","Saat / Metraj","Ekipman","Açıklama"], vals=r.vals.slice();
+  for(let j=0;j<vals.length;j++){ const v=prompt(labels[j]+":",vals[j]??""); if(v===null)return; vals[j]=v; }
+  r.vals=vals; save(); renderMachine();
+}
+function delDaily(i){if(confirm("Günlük faaliyet kaydı silinsin mi?")){state.daily.splice(i,1);save();renderMachine();}}
+
+function personnelView(el){
+ const rows=state.personnel||[];
+ const mine=rows.filter(x=>x.machine===current);
+ el.innerHTML+=`<div class="panel"><h3>Çalışan Personel Durumu</h3>
+ <div class="formgrid">
+ <input id="p0" type="date" value="${new Date().toISOString().slice(0,10)}">
+ <input id="p1" placeholder="Personel adı">
+ <select id="p2"><option>Çalışıyor</option><option>İzinli</option><option>Raporlu</option><option>Görevde Değil</option><option>Diğer</option></select>
+ <input id="p3" placeholder="Görevi">
+ <input id="p4" placeholder="Vardiya / çalışma saati">
+ <input id="p5" placeholder="Not">
+ </div>
+ <div class="actions"><button class="green" onclick="addPersonnel()">Personel Kaydı Ekle</button></div>
+ <table><tr><th>Tarih</th><th>Personel</th><th>Durum</th><th>Görev</th><th>Vardiya / Saat</th><th>Not</th><th>İşlem</th></tr>
+ ${mine.map(x=>`<tr>${x.vals.map(v=>`<td>${esc(v)}</td>`).join("")}<td><button onclick="editPersonnel(${rows.indexOf(x)})">Düzenle</button> <button class="red" onclick="delPersonnel(${rows.indexOf(x)})">Sil</button></td></tr>`).join("")}
+ </table></div>`;
+}
+function addPersonnel(){
+ state.personnel ||= [];
+ state.personnel.push({machine:current,vals:[
+  document.getElementById("p0").value,document.getElementById("p1").value,document.getElementById("p2").value,
+  document.getElementById("p3").value,document.getElementById("p4").value,document.getElementById("p5").value
+ ]});
+ save();renderMachine();
+}
+function editPersonnel(i){
+  const r=state.personnel[i]; if(!r)return;
+  const labels=["Tarih","Personel","Durum","Görev","Vardiya / Saat","Not"], vals=r.vals.slice();
+  for(let j=0;j<vals.length;j++){ const v=prompt(labels[j]+":",vals[j]??""); if(v===null)return; vals[j]=v; }
+  r.vals=vals; save(); renderMachine();
+}
+function delPersonnel(i){if(confirm("Personel kaydı silinsin mi?")){state.personnel.splice(i,1);save();renderMachine();}}
+
+function logsView(el,type){
+ const titles={fixed:"Sabit Makine Ekipmanları",spare:"Yedek Malzemeler",maint:"Bakım Zamanı / Geçmişi",fail:"Arıza Kayıtları",work:"Yapılan İşler",supply:"Tedarik"};
+ const configs={
+ fixed:["Ekipman","Durum","Not"],spare:["Malzeme","Mevcut","Olması gereken / Not"],maint:["Bakım","Periyot","Tarih / Saat","Sonraki bakım","Not"],fail:["Tarih","Arıza","Değişen parça","Maliyet","Durum","Not"],work:["Tarih","İş / Şantiye","Yapılan iş","Saat / Metraj","Malzeme","Not"],supply:["Tarih","Malzeme / Parça","Miktar","Tedarikçi","Fiyat","Not"]};
+ const arr=state[type==="fixed"?"fixed":type==="spare"?"spare":type]||[];
+ const heads=configs[type];
+ let fields=heads.map((h,i)=>`<input id="f${i}" placeholder="${h}">`).join("");
+ el.innerHTML+=`<div class="panel"><h3>${titles[type]}</h3><div class="formgrid">${fields}</div><div class="actions"><button class="green" onclick="addLog('${type}')">Kayıt Ekle</button></div>
+ <table><tr>${heads.map(h=>`<th>${h}</th>`).join("")}<th>İşlem</th></tr>
+ ${arr.filter(x=>x.machine===current).map((x,i)=>`<tr>${heads.map((h,j)=>`<td>${esc(x.vals[j]||"")}</td>`).join("")}<td><button onclick="editLog('${type}',${state[type==="fixed"?"fixed":type==="spare"?"spare":type].indexOf(x)})">Düzenle</button> <button class="red" onclick="delLog('${type}',${state[type==="fixed"?"fixed":type==="spare"?"spare":type].indexOf(x)})">Sil</button></td></tr>`).join("")}</table></div>`;
+}
+function addLog(type){
+ const map={fixed:"fixed",spare:"spare",maint:"maint",fail:"fail",work:"work",supply:"supply"};const key=map[type];state[key] ||= [];
+ const count={fixed:3,spare:3,maint:5,fail:6,work:6,supply:6}[type];let vals=[];for(let i=0;i<count;i++)vals.push(document.getElementById("f"+i)?.value||"");
+ state[key].push({machine:current,vals});save();renderMachine();
+}
+function editLog(type,i){
+  const key=type, r=state[key]&&state[key][i]; if(!r)return;
+  const labels={fixed:["Ekipman","Durum","Not"],spare:["Malzeme","Mevcut","Olması gereken / Not"],maint:["Bakım","Periyot","Tarih / Saat","Sonraki bakım","Not"],fail:["Tarih","Arıza","Değişen parça","Maliyet","Durum","Not"],work:["Tarih","İş / Şantiye","Yapılan iş","Saat / Metraj","Malzeme","Not"],supply:["Tarih","Malzeme / Parça","Miktar","Tedarikçi","Fiyat","Not"]}[type]||[];
+  const vals=(r.vals||[]).slice();
+  for(let j=0;j<labels.length;j++){ const v=prompt(labels[j]+":",vals[j]??""); if(v===null)return; vals[j]=v; }
+  r.vals=vals; save(); renderMachine();
+}
+function delLog(type,i){const key=type; if(confirm("Kayıt silinsin mi?")){state[key].splice(i,1);save();renderMachine();}}
+function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="dyson_jeoteknik_yedek.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);}
+window.addEventListener("DOMContentLoaded",()=>{
+ const search=document.getElementById("search");
+ if(search) search.addEventListener("input",renderHome);
+ renderHome();
+});
+</script>
+</body></html>
