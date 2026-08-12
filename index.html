@@ -653,33 +653,93 @@ function companyVehiclesView(){
   document.getElementById("externalLodging").classList.add("hidden");
   document.getElementById("personnelDirectory").classList.add("hidden");
   document.getElementById("purchases").classList.add("hidden");
-  const d=document.getElementById("companyVehicles"); d.classList.remove("hidden");
-  const rows=[...(state.companyVehicles||[])].sort((a,b)=>{
-    const ma=parseInt(String((a.vals||[])[1]||"").match(/\d{4}/)?.[0]||"0",10);
-    const mb=parseInt(String((b.vals||[])[1]||"").match(/\d{4}/)?.[0]||"0",10);
-    return mb-ma;
-  });
+
+  const d=document.getElementById("companyVehicles");
+  d.classList.remove("hidden");
+
+  // Araçları model yılına göre sırala ama gerçek kayıt numarasını koru.
+  const rows=[...(state.companyVehicles||[])]
+    .map((x,index)=>({x,index}))
+    .sort((a,b)=>{
+      const ma=parseInt(
+        String((a.x.vals||[])[1]||"").match(/\d{4}/)?.[0]||"0",
+        10
+      );
+      const mb=parseInt(
+        String((b.x.vals||[])[1]||"").match(/\d{4}/)?.[0]||"0",
+        10
+      );
+      return mb-ma;
+    });
+
   d.innerHTML=`<div class="panel">
     <button class="gray" onclick="closeCompanyVehicles()">← Kategoriler</button>
-    <h2>🚚 Şirket Araçları <span class="pill">${rows.length} araç</span></h2>
-    <div class="actions"><button class="green" onclick="showAddCompanyVehicle()">＋ Araç Ekle</button></div>
+
+    <h2>🚚 Şirket Araçları
+      <span class="pill">${rows.length} araç</span>
+    </h2>
+
+    <div class="actions">
+      <button class="green" onclick="showAddCompanyVehicle()">＋ Araç Ekle</button>
+    </div>
+
     <div id="companyVehicleForm" class="hidden"></div>
-    <div class="notice">9 araçlık güncel şirket araç listesi.</div>
+
+    <div class="notice">
+      Araç listesi model yılına göre sıralanır.
+      Aç, Düzenle ve Sil işlemleri doğru araç üzerinden çalışır.
+    </div>
+
     <table>
-      <tr><th>Araç</th><th>Model</th><th>Plaka</th><th>Sigorta</th><th>Muayene</th><th>Not</th><th>İşlem</th></tr>
-      ${rows.map((x,i)=>{
+      <tr>
+        <th>Araç</th>
+        <th>Model</th>
+        <th>Plaka</th>
+        <th>Sigorta</th>
+        <th>Muayene</th>
+        <th>Not</th>
+        <th>İşlem</th>
+      </tr>
+
+      ${rows.map(({x,index})=>{
         const v=x.vals||[];
         const parts=String(v[9]||"").split(" / ");
+
+        const insurance=vehicleDateStatus(parts[0]);
+        const inspection=vehicleDateStatus(parts[1]);
+
         return `<tr>
-          <td>${esc(v[0]||"")}</td><td>${esc(v[1]||"")}</td><td>${esc(v[2]||"")}</td>
-          <td class="${vehicleDateStatus(parts[0]).cls}">${esc(vehicleDateStatus(parts[0]).text)}</td><td class="${vehicleDateStatus(parts[1]).cls}">${esc(vehicleDateStatus(parts[1]).text)}</td><td>${esc(v[10]||"")}</td>
-          <td><button onclick="viewCompanyVehicle(${i})">Aç</button> <button onclick="editCompanyVehicle(${i})">Düzenle</button> <button class="red" onclick="deleteCompanyVehicle(${i})">Sil</button></td>
+          <td>${esc(v[0]||"")}</td>
+          <td>${esc(v[1]||"")}</td>
+          <td><b>${esc(v[2]||"")}</b></td>
+
+          <td class="${insurance.cls}">
+            ${esc(insurance.text)}
+          </td>
+
+          <td class="${inspection.cls}">
+            ${esc(inspection.text)}
+          </td>
+
+          <td>${esc(v[10]||"")}</td>
+
+          <td>
+            <button onclick="viewCompanyVehicle(${index})">Aç</button>
+
+            <button onclick="editCompanyVehicle(${index})">
+              Düzenle
+            </button>
+
+            <button class="red" onclick="deleteCompanyVehicle(${index})">
+              Sil
+            </button>
+          </td>
         </tr>`;
       }).join("")}
+
     </table>
   </div>`;
 }
-function viewCompanyVehicle(i){
   const x=state.companyVehicles[i]; if(!x)return;
   const v=x.vals||[];
   const parts=String(v[9]||"").split(" / ");
